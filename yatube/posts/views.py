@@ -42,7 +42,7 @@ def group_list(request: HttpRequest, slug: str) -> HttpResponse:
         slug=slug
     )
     template: str = 'posts/group_list.html'
-    title: str = group_name
+    title: Group = group_name
     posts: QuerySet = group_name.posts.all()
     description: str = group_name.description
     paginator: Paginator = Paginator(posts, POST_COUNT)
