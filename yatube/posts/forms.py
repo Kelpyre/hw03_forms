@@ -15,11 +15,11 @@ class PostForm(forms.ModelForm):
                 'class': 'form-control',
                 'cols': '40',
                 'rows': '10'
-                }
+            }
             ),
             "group": forms.Select(attrs={
                 'class': 'form-control'
-                }
+            }
             ),
         }
 
