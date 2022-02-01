@@ -1,5 +1,3 @@
-from typing import Union
-
 from django import forms
 from django.core.exceptions import ValidationError
 
@@ -10,7 +8,7 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ('text', 'group')
-        widgets: dict[str, Union[forms.Textarea, forms.Select]] = {
+        widgets = {
             "text": forms.Textarea(attrs={
                 'class': 'form-control',
                 'cols': '40',
