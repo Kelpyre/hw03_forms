@@ -4,7 +4,6 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.db.models.query import QuerySet
 from django.http import HttpRequest, Http404, HttpResponse
 from django.core.paginator import Paginator, Page
-from django.utils.text import Truncator
 from django.contrib.auth.decorators import login_required
 
 from .models import Post, Group, User
@@ -83,10 +82,8 @@ def post_detail(request: HttpRequest, post_id: int) -> HttpResponse:
     template: str = 'posts/post_detail.html'
     post: Union[Post, Http404] = get_object_or_404(Post, pk=post_id)
     author: str = post.author
-    post_author: QuerySet = Post.objects.filter(author=author)
-    posts_count: int = post_author.count()
-    first_30 = Truncator(post.text).words(WORD_COUNT)
-    title: str = f'Пост {first_30}'
+    posts_count: int = author.posts.all().count()
+    title: str = f'Пост {post.text[:WORD_COUNT]}'
     context: dict[str, Union[str, Post, int]] = {
         'title': title,
         'post': post,
@@ -104,7 +101,7 @@ def post_create(request: HttpRequest) -> HttpResponse:
     if form.is_valid():
         added_post = form.save(commit=False)
         added_post.author = request.user
-        form.save(commit=True)
+        added_post.save(commit=True)
         return redirect('posts:profile', added_post.author)
     context: dict[str, Union[str, PostForm]] = {
         'form': form,
@@ -119,19 +116,16 @@ def post_edit(request: HttpRequest, post_id: int) -> HttpResponse:
     template: str = 'posts/create_post.html'
     title: str = 'Редактировать запись'
     post = get_object_or_404(Post, pk=post_id)
-    if post.author == request.user:
-        form: PostForm = PostForm(request.POST or None, instance=post)
-        if form.is_valid():
-            added_post = form.save(commit=False)
-            added_post.author = request.user
-            form.save(commit=True)
-            return redirect('posts:post_detail', post_id=post_id)
-        context: dict[str, Union[str, bool, PostForm, int]] = {
-            'form': form,
-            'title': title,
-            'is_edit': True,
-            'post_id': post_id
-        }
-        return render(request, template, context)
-    else:
+    if post.author != request.user:
         return redirect('posts:post_detail', post_id=post_id)
+    form: PostForm = PostForm(request.POST or None, instance=post)
+    if form.is_valid():
+        form.save()
+        return redirect('posts:post_detail', post_id=post_id)
+    context: dict[str, Union[str, bool, PostForm, int]] = {
+        'form': form,
+        'title': title,
+        'is_edit': True,
+        'post_id': post_id
+    }
+    return render(request, template, context)
