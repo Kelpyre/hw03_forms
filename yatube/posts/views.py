@@ -101,7 +101,7 @@ def post_create(request: HttpRequest) -> HttpResponse:
     if form.is_valid():
         added_post = form.save(commit=False)
         added_post.author = request.user
-        added_post.save(commit=True)
+        added_post.save()
         return redirect('posts:profile', added_post.author)
     context: dict[str, Union[str, PostForm]] = {
         'form': form,
